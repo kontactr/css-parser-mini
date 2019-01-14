@@ -142,7 +142,8 @@ function cssOuterParser(query){
         cssArrayObjects: []
 
     }
-    console.log(internalParser(newObject , 0 , [newObject] , 0).cssArrayObjects);
+    newObject =  internalParser(newObject , 0 , [newObject] , 0);
+    return newObject.cssArrayObjects;
 
 }
 

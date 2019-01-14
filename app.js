@@ -1,4 +1,5 @@
 const parser = require("./parser/CssOuterParser");
+const selectorParser = require("./parser/SelectorParser");
 
 const css = `
 
@@ -37,4 +38,4 @@ h2:n-p{
 
 `;
 
-console.log(parser.cssOuterParser(css));
+console.log(selectorParser.selectorParser(parser.cssOuterParser(css)));
