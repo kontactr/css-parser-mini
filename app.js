@@ -17,6 +17,12 @@ h1,h2 .main #id{
     prop2 : value4;
 }
 
+@media only screen(maxWidth: 500px) and (min-width: 700px){
+    h1{
+        prop1: value2;
+    }
+}
+
 `;
 
 console.log(parser.cssOuterParser(css));

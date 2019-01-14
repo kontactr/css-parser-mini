@@ -7,7 +7,7 @@ function cssOuterParser(query){
     let queryCache = '';
     let previousCache = '';
     let skipSpace = true;
-    let inSelector = false;
+    let directiveSelector = false;
 
     function internalParser(resultObject , queryIndex , stack , flag){
 
@@ -29,7 +29,7 @@ function cssOuterParser(query){
         }
 
         else if(query[queryIndex] === ' '){
-            if(skipSpace){
+            if(skipSpace && !directiveSelector){
                 return internalParser(resultObject , queryIndex + 1 , stack , 1);
             }
             else{
@@ -42,11 +42,19 @@ function cssOuterParser(query){
             let newObject = {}
             if(queryCache){
                 newObject["selector"] = queryCache;
+                newObject["cssArrayObjects"] = [];
                 queryCache = "";
             }else{
                 newObject["selecor"] = "";
+                newObject["cssArrayObjects"] = [];
                 queryCache = "";
             }
+            if(directiveSelector){
+                newObject["directiveSelector"] = true;
+            }
+
+            directiveSelector = false;
+            skipSpace = true;
             resultObject.cssArrayObjects.push(newObject);
             stack.push(newObject);
             return internalParser(newObject , queryIndex+1 , stack , 3);
@@ -64,6 +72,15 @@ function cssOuterParser(query){
 
         else if(query[queryIndex] === ":"){
             skipSpace = false;
+
+            if(directiveSelector){
+                queryCache += query[queryIndex];
+                return internalParser(
+                    resultObject , queryIndex+1,
+                    stack , 10
+                );
+            }else{
+
             if(queryCache){
                 previousCache = queryCache;
                 queryCache = '';
@@ -72,6 +89,7 @@ function cssOuterParser(query){
                 resultObject , queryIndex + 1,
                 stack , 6
             );
+            }
         }
 
         else if(query[queryIndex] === ";"){
@@ -86,6 +104,17 @@ function cssOuterParser(query){
                 );
         }
 
+        else if(query[queryIndex] === '@'){
+            directiveSelector = true;
+            return internalParser(
+                resultObject,
+                queryIndex + 1,
+                stack ,
+                8
+            );
+        }
+
+
         else {
             queryCache += query[queryIndex];
             return internalParser(resultObject , queryIndex+1 ,
@@ -99,7 +128,7 @@ function cssOuterParser(query){
         cssArrayObjects: []
 
     }
-    console.log(internalParser(newObject , 0 , [newObject] , 0));
+    console.log(internalParser(newObject , 0 , [newObject] , 0).cssArrayObjects[3]);
 
 }
 

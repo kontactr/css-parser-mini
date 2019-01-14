@@ -1,1 +1,1 @@
-# css-parser-mini
+# CSS-parser-mini
