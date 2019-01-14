@@ -8,6 +8,7 @@ function cssOuterParser(query){
     let previousCache = '';
     let skipSpace = true;
     let directiveSelector = false;
+    let outerSelectorFlagForColon = true;
 
     function internalParser(resultObject , queryIndex , stack , flag){
 
@@ -55,6 +56,7 @@ function cssOuterParser(query){
 
             directiveSelector = false;
             skipSpace = true;
+            outerSelectorFlagForColon = false;
             resultObject.cssArrayObjects.push(newObject);
             stack.push(newObject);
             return internalParser(newObject , queryIndex+1 , stack , 3);
@@ -63,6 +65,7 @@ function cssOuterParser(query){
 
         else if(query[queryIndex] === "}"){
             let temp = stack.pop();
+            outerSelectorFlagForColon = true;
             return internalParser(
                 stack[stack.length - 1],
                 queryIndex + 1,
@@ -79,6 +82,13 @@ function cssOuterParser(query){
                     resultObject , queryIndex+1,
                     stack , 10
                 );
+
+                }else if(outerSelectorFlagForColon){
+                    queryCache += query[queryIndex];
+                    return internalParser(
+                        resultObject , queryIndex+1 ,
+                        stack , 11
+                    );
             }else{
 
             if(queryCache){
@@ -128,7 +138,7 @@ function cssOuterParser(query){
         cssArrayObjects: []
 
     }
-    console.log(internalParser(newObject , 0 , [newObject] , 0).cssArrayObjects[3]);
+    console.log(internalParser(newObject , 0 , [newObject] , 0).cssArrayObjects);
 
 }
 

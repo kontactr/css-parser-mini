@@ -17,6 +17,14 @@ h1,h2 .main #id{
     prop2 : value4;
 }
 
+h1::n-th-of-type(5n){
+    p1:p1;
+}
+
+h2:n-p{
+    errr:errr;
+}
+
 @media only screen(maxWidth: 500px) and (min-width: 700px){
     h1{
         prop1: value2;
