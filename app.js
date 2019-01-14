@@ -25,6 +25,10 @@ h2:n-p{
     errr:errr;
 }
 
+* {
+    pass:pass;
+}
+
 @media only screen(maxWidth: 500px) and (min-width: 700px){
     h1{
         prop1: value2;
