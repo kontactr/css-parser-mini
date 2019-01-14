@@ -33,15 +33,50 @@ function selectorParser(cssObject){
         return newQueryString;
     }
 
+    function previousOperationSettled(resultObject , type , queryCache , stack){
+        console.log(type);
+        switch(type){
+            case 'child':{
+                let newObject = {}
+                newObject.children = [];
+                newObject.tag = queryCache;
+                newObject["class"] = [];
+                newObject["id"] = "";
+                newObject["pOneSelector"] = [];
+                newObject["pSecondSelector"] = [];
+                resultObject.children.push(newObject);
+                stack.push(newObject);
+                return {"object":newObject , "stack":stack};
+            }
+            case 'class':{
+                resultObject["class"].push(queryCache);
+                return {"object":resultObject , "stack":stack};
+            }
+            case 'id':{
+                resultObject["id"] = queryCache;
+                return {"object":resultObject , "stack":stack};
+            }
+            case 'comma':{
+                let temp  = stack.pop();
+                let answer = previousOperationSettled(stack[stack.length - 1] , "child" , queryCache , stack);
+                //console.log(answer);
+                return {"object": answer["object"] , "stack":answer["stack"]};
+            }
+        }
+
+    }
+
+
     function internalParser(queryString , queryObject){
 
-        
         let queryCache = '';
-        let spaceEncountered = false;
+        let operatorSpotted = false;
         let stack = [];
-        let type = "";
+        let type = "child";
+        let operatorSet = [",",".","#","+","~",":"];
 
         queryObject["selectorObject"] = {};
+
 
         stack.push(queryObject["selectorObject"]);
         let currentObject = queryObject["selectorObject"];
@@ -51,10 +86,51 @@ function selectorParser(cssObject){
         console.log(queryString);
 
         for(let character of queryString){
-                break;
 
+            if(character === " "){
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                currentObject = answer["object"];
+                stack = answer["stack"];
+                type = "child";
+                queryCache = "";
+            }
+
+            else if(character === "."){
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                currentObject = answer["object"];
+                stack = answer["stack"];
+                type = "class";
+                queryCache = "";
+            }
+
+            else if(character === "#"){
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                currentObject = answer["object"];
+                stack = answer["stack"];
+                type = "id";
+                queryCache = "";
+            }
+
+            else if(character === ","){
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                currentObject = answer["object"];
+                stack = answer["stack"];
+                type = "comma";
+                queryCache = "";
+            }
+
+            else if(alphanumeric(character)){
+                queryCache += character;
+            }
+            else if(!operatorSet.includes(character)){
+                queryCache += character;
+            }
+            
             
         }
+        previousOperationSettled(currentObject , type , queryCache , stack);
+        return stack[0];
+        //console.log(queryCache);
     }
 
 
@@ -65,7 +141,12 @@ function selectorParser(cssObject){
                  roundTrip(cssSelector.cssArrayObjects);
                  continue;
             }
+            
             internalParser(cssSelector.selector , cssSelector);
+            //cssSelector["parsedSelector"] = parsedSelector;
+            console.log(cssSelector.selectorObject);
+            
+
         }
     }
     roundTrip(cssObject);
