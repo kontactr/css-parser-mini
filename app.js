@@ -7,7 +7,7 @@ h1 {
     prop2: valu2;
 }
 
-h2 {
+h2 h3 {
     propq: value1;
     prop2: value1 value2;
 }

@@ -8,7 +8,7 @@ function cssOuterParser(query){
     let previousCache = '';
     let skipSpace = true;
     let directiveSelector = false;
-    let outerSelectorFlagForColon = true;
+    let outerSelectorFlag = true;
 
     function internalParser(resultObject , queryIndex , stack , flag){
 
@@ -30,7 +30,11 @@ function cssOuterParser(query){
         }
 
         else if(query[queryIndex] === ' '){
-            if(skipSpace && !directiveSelector){
+            if(outerSelectorFlag){
+                queryCache += query[queryIndex];
+                return internalParser(resultObject , queryIndex + 1 , stack , 2);
+            }
+            else if(skipSpace && !directiveSelector){
                 return internalParser(resultObject , queryIndex + 1 , stack , 1);
             }
             else{
@@ -42,7 +46,7 @@ function cssOuterParser(query){
         else if(query[queryIndex] === '{') {
             let newObject = {}
             if(queryCache){
-                newObject["selector"] = queryCache;
+                newObject["selector"] = queryCache.trim();
                 newObject["cssArrayObjects"] = [];
                 queryCache = "";
             }else{
@@ -56,7 +60,7 @@ function cssOuterParser(query){
 
             directiveSelector = false;
             skipSpace = true;
-            outerSelectorFlagForColon = false;
+            outerSelectorFlag = false;
             resultObject.cssArrayObjects.push(newObject);
             stack.push(newObject);
             return internalParser(newObject , queryIndex+1 , stack , 3);
@@ -65,7 +69,7 @@ function cssOuterParser(query){
 
         else if(query[queryIndex] === "}"){
             let temp = stack.pop();
-            outerSelectorFlagForColon = true;
+            outerSelectorFlag = true;
             return internalParser(
                 stack[stack.length - 1],
                 queryIndex + 1,
@@ -83,7 +87,7 @@ function cssOuterParser(query){
                     stack , 10
                 );
 
-                }else if(outerSelectorFlagForColon){
+                }else if(outerSelectorFlag){
                     queryCache += query[queryIndex];
                     return internalParser(
                         resultObject , queryIndex+1 ,
@@ -105,7 +109,7 @@ function cssOuterParser(query){
         else if(query[queryIndex] === ";"){
             if(previousCache){
                 skipSpace = true;
-                resultObject[previousCache] = queryCache;
+                resultObject[previousCache] = queryCache.trim();
                 previousCache = '';
                 queryCache = '';
             }
