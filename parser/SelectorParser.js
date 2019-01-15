@@ -33,8 +33,8 @@ function selectorParser(cssObject){
         return newQueryString;
     }
 
-    function previousOperationSettled(resultObject , type , queryCache , stack){
-        console.log(type);
+    function previousOperationSettled(resultObject , type , queryCache , stack , settings){
+        console.log(type , "Qqqqq" , settings);
         switch(type){
             case 'child':{
                 let newObject = {}
@@ -46,21 +46,34 @@ function selectorParser(cssObject){
                 newObject["pSecondSelector"] = [];
                 resultObject.children.push(newObject);
                 stack.push(newObject);
-                return {"object":newObject , "stack":stack};
+                return {"object":newObject , "stack":stack , "settings":settings};
             }
             case 'class':{
                 resultObject["class"].push(queryCache);
-                return {"object":resultObject , "stack":stack};
+                return {"object":resultObject , "stack":stack,"settings":settings};
             }
             case 'id':{
                 resultObject["id"] = queryCache;
-                return {"object":resultObject , "stack":stack};
+                return {"object":resultObject , "stack":stack,"settings":settings};
             }
             case 'comma':{
                 let temp  = stack.pop();
-                let answer = previousOperationSettled(stack[stack.length - 1] , "child" , queryCache , stack);
+                let answer = previousOperationSettled(stack[stack.length - 1] , "child" , queryCache , stack , settings);
                 //console.log(answer);
-                return {"object": answer["object"] , "stack":answer["stack"]};
+                return {"object": answer["object"] , "stack":answer["stack"],"settings":settings};
+            }
+            case 'single colon':{
+                resultObject["pOneSelector"].push(queryCache);
+                settings["colonedStatus"] = 0;
+                return {"object":resultObject , "stack":stack , settings:settings};
+            }
+            case 'Double colon':{
+                resultObject["pSecondSelector"].push(queryCache);
+                settings["colonedStatus"] = 0;
+                return {"object":resultObject , "stack":stack , settings:settings};
+            }
+            default:{
+                return{"object":resultObject , "stack":stack , "settings":settings};
             }
         }
 
@@ -74,6 +87,10 @@ function selectorParser(cssObject){
         let stack = [];
         let type = "child";
         let operatorSet = [",",".","#","+","~",":"];
+         
+        let settings = {
+            colonedStatus : 0
+        }
 
         queryObject["selectorObject"] = {};
 
@@ -88,36 +105,58 @@ function selectorParser(cssObject){
         for(let character of queryString){
 
             if(character === " "){
-                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack , settings);
                 currentObject = answer["object"];
                 stack = answer["stack"];
+                settings = answer["settings"];
                 type = "child";
                 queryCache = "";
             }
 
             else if(character === "."){
-                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack , settings);
                 currentObject = answer["object"];
                 stack = answer["stack"];
+                settings = answer["settings"];
                 type = "class";
                 queryCache = "";
             }
 
             else if(character === "#"){
-                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack , settings);
                 currentObject = answer["object"];
                 stack = answer["stack"];
+                settings = answer["settings"];
                 type = "id";
                 queryCache = "";
             }
 
             else if(character === ","){
-                let answer = previousOperationSettled(currentObject , type , queryCache , stack);
+                let answer = previousOperationSettled(currentObject , type , queryCache , stack , settings);
                 currentObject = answer["object"];
-                stack = answer["stack"];
+                stack = answer.stack;
+                settings = answer.settings;
                 type = "comma";
                 queryCache = "";
             }
+
+            else if(character === ":"){
+                if(settings.colonedStatus == 0){
+                    let answer = previousOperationSettled(currentObject , type , queryCache ,stack , settings);
+                    settings.colonedStatus = 1;
+                    currentObject = answer.object;
+                    stack = answer.stack;
+                    settings = answer.settings;
+                    queryCache = "";
+                    type = "single colon";
+                }else if(settings.colonedStatus == 1){
+                    colonedStatus = 2;
+                    type = "Double colon";
+                    queryCache = '';
+                }
+            }
+
+            
 
             else if(alphanumeric(character)){
                 queryCache += character;
@@ -128,7 +167,7 @@ function selectorParser(cssObject){
             
             
         }
-        previousOperationSettled(currentObject , type , queryCache , stack);
+        previousOperationSettled(currentObject , type , queryCache , stack , settings);
         return stack[0];
         //console.log(queryCache);
     }
@@ -145,11 +184,10 @@ function selectorParser(cssObject){
             internalParser(cssSelector.selector , cssSelector);
             //cssSelector["parsedSelector"] = parsedSelector;
             console.log(cssSelector.selectorObject);
-            
-
         }
+        return cssObject;
     }
-    roundTrip(cssObject);
+    return roundTrip(cssObject);
     
 }
 

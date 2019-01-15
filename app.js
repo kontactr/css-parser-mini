@@ -32,6 +32,15 @@ h2 h3 {
     }
 }
 
+h1 :: n-th-of-type(5n){
+    p1:p1;
+}
+
+h2:n-p{
+    errr:errr;
+}
+
+
 `;
 
-console.log(selectorParser.selectorParser(parser.cssOuterParser(css)));
+console.log(selectorParser.selectorParser(parser.cssOuterParser(css))[6].selectorObject.children);
