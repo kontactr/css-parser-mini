@@ -1,0 +1,16 @@
+##space -> children
+comma -> append 
+##hash -> id
+##dot -> class Array
+colon -> pSingleSeudo Array
+colons -> pDoublesSeudo Array
+
+h1 :: n-th-of-type(5n){
+    p1:p1;
+}
+
+h2:n-p{
+    errr:errr;
+}
+
+
